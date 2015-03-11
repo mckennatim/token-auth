@@ -27,13 +27,13 @@ Register.directive('register', ['$state', 'UserService', 'TokenService', 'AuthSe
 			scope.users=	UserService.al;
 			scope.nameValid =/^\s*\w*\s*$/
 			scope.grey=false;
-			if (TokenService.tokenExists(scope.users.activeUser)){
-				var message = 'all set you are authorized and have token';
+			var user = scope.users.activeUser
+			if (TokenService.tokenExists(user) && scope.users[user] && scope.users[user].email && scope.users[user].apikey){
+				scope.users.regMessage = 'all set you are authorized and have token';
 				console.log(scope.users.activeUser)
-				scope.username = scope.users.activeUser;
-				scope.email = scope.users[scope.users.activeUser].email
+				scope.username = user;
+				scope.email = scope.users[user].email
 				UserService.setRegState('Authenticated, go to Lists');
-				UserService.setRegMessage(message);
 			} else {
 				var message = ' Welcome, please register on this machine';
 				UserService.setRegMessage(message);
@@ -44,7 +44,7 @@ Register.directive('register', ['$state', 'UserService', 'TokenService', 'AuthSe
 			} 
 			scope.doesNameExist =function(){
 				UserService.setRegMessage('will check status...')
-				if (TokenService.tokenExists(scope.username)){
+				if (TokenService.tokenExists(scope.username) && scope.users[user] && scope.users[user].email && scope.users[user].apikey){
 					UserService.setRegMessage( 'all set you are authorized and have token');
 					UserService.makeActive(scope.username);
 					UserService.setRegState('Authenticated, go to Lists');
@@ -115,11 +115,15 @@ Register.directive('register', ['$state', 'UserService', 'TokenService', 'AuthSe
 						var name = scope.users.activeUser;
 						UserService.dBget(name)
 							.then(function(data){
-								console.log(data);
-								scope.users[name]=data.items;
-								UserService.makeActive(name)
-								cfg.afterReg(name);
-								$state.go('lists')
+								if(data=='Unauthorized'){
+									scope.users.regMessage = 'Sorry, your apikey and token have expired'
+									scope.users.regState= 'Get apikey'
+								}else{
+									scope.users[name]=data.items;
+									UserService.makeActive(name)
+									cfg.afterReg(name);
+									$state.go('lists')
+																	}
 							})
 							.catch(function(data){
 								scope.users.regMessage = ' server is down, cannot get servers user record now'
@@ -218,7 +222,10 @@ Register.factory('AuthService', ['$http', '$q', 'cfg', function($http, $q, cfg) 
 			var deferred = $q.defer();
 			$http.get(url).   
 			success(function(data, status) {
-				console.log(status);
+				if (status==0){
+					console.log('status==0')
+					deferred.reject({message: 'server is down'});
+				}
 				deferred.resolve(data);
 			}).
 			error(function(data, status){
@@ -364,9 +371,13 @@ Register.factory('UserService',  ['$http', 'cfg', '$q', function($http, cfg, $q)
 			var deferred = $q.defer();     
 			$http.get(url).
 			success(function(data,status){
+				console.log(data)
+				console.log(status)
 				deferred.resolve(data)
 			}).
 			error(function(data,status){
+				console.log(data)
+				console.log(status)
 				deferred.reject(data)
 			});
 			return deferred.promise;
