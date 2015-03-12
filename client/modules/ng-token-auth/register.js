@@ -119,15 +119,18 @@ Register.directive('register', ['$state', 'UserService', 'TokenService', 'AuthSe
 									scope.users.regMessage = 'Sorry, your apikey and token have expired'
 									scope.users.regState= 'Get apikey'
 								}else{
-									scope.users[name]=data.items;
+									if (data){
+										scope.users[name]=data.items;
+									}
 									UserService.makeActive(name)
 									cfg.afterReg(name);
-									$state.go('lists')
+									$state.go(cfg.setup().toState)
 																	}
 							})
 							.catch(function(data){
 								scope.users.regMessage = ' server is down, cannot get servers user record now'
 								console.log(data);
+								$state.go(cfg.setup().toState)
 							})						
 						break;
 					default:
