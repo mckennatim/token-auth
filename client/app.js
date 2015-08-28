@@ -8,9 +8,9 @@ var app = angular.module("App", [
 
 app.constant('cfg', {
     setup: function(){
-        var port = 3002;
+        var port = 3003;
         var url = 'http://localhost:'+port+'/api/';
-        var prefix = 'reg_';
+        var prefix = 's2gm_';
         var toState = 'lists'
         return {
             port: port,
@@ -27,11 +27,11 @@ app.constant('cfg', {
 app.config(['$urlRouterProvider', '$stateProvider', function($urlRouterProvider, $stateProvider){
     $stateProvider.state('splash',{
         url:'/',
-        template: '<h4>Splash</h4>'
+        template: '</br></br></br><h4>Splash</h4>'
     });
     $stateProvider.state('lists',{
         url:'/lists',
-        template: '<h4>Lists</h4>'
+        template: '</br></br></br><h4>Lists</h4>'
     });
     $urlRouterProvider.otherwise('/');    
 }])
